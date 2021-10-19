@@ -20,17 +20,18 @@ function ChatBox({ addNewChat, name, roomId, users }) {
     const roomName = prompt("please enter name for chatroom");
 
     if (roomName) {
-      const randomRoomId = "wa_room_" + Math.floor(1000 + Math.random() * 9000);
-      console.log(randomRoomId);
+      const randomRoomId = "group__" + Math.floor(1000 + Math.random() * 9000);
 
-      await axios.post("/room/new", {
-        roomId: randomRoomId,
-        roomOwner: user.email,
-        roomName: roomName,
-        _created_at: new Date(),
-        _last_updated_at: new Date(),
-        users: [user.email],
+      const docRef = await addDoc(collection(db, "group"), {
+        groupName: roomName,
+        groupId: randomRoomId,
+        createdBy: user.email,
+        createdAt: new Date(),
+        lastModifiedAt: new Date(),
+        members: [user.email],
+        type: true,
       });
+      console.log(docRef);
     }
   };
   const handleCurrentRoomChange = () => {

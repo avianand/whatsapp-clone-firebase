@@ -4,6 +4,7 @@ import { getAuth, signInWithPopup, GoogleAuthProvider } from "firebase/auth";
 import { auth, provider } from "../firebase";
 import "./index.css";
 import { useStateValue } from "../StateProvider";
+import { actionTypes } from "../reducer";
 
 function Login() {
   const [{}, dispatch] = useStateValue();
@@ -11,13 +12,8 @@ function Login() {
   const signIn = () => {
     signInWithPopup(auth, provider)
       .then((result) => {
-        // This gives you a Google Access Token. You can use it to access the Google API.
-        // console.log(result);
-        // const credential = GoogleAuthProvider.credentialFromResult(result);
-        // const token = credential.accessToken;
-        // The signed-in user info.
         dispatch({
-          type: "SET_USER",
+          type: actionTypes.SET_USER,
           user: result.user,
         });
         // ...

@@ -1,15 +1,16 @@
 export const initialState = {
   user: null,
   rooms: [],
+  groups: [],
   currentRoom: null,
 };
 
 export const actionTypes = {
   SET_USER: "SET_USER",
-  GET_ROOMS: "GET_ROOMS",
   ADD_NEW_MESSAGE: "ADD_NEW_MESSAGE",
   SET_CURRENT_ROOM: "SET_CURRENT_ROOM",
   ADD_NEW_ROOM: "ADD_NEW_ROOM",
+  GET_GROUPS: "GET_GROUPS",
 };
 
 const reducer = (state, action) => {
@@ -20,10 +21,10 @@ const reducer = (state, action) => {
         ...state,
         user: action.user,
       };
-    case actionTypes.GET_ROOMS:
+    case actionTypes.GET_GROUPS:
       return {
         ...state,
-        rooms: action.rooms,
+        groups: action.groups,
       };
     case actionTypes.ADD_NEW_MESSAGE:
       let currRoom = state.currentRoom;

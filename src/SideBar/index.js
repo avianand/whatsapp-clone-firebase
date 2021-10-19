@@ -12,12 +12,24 @@ import db from "../firebase";
 import "./index.scss";
 import { useStateValue } from "../StateProvider";
 import axios from "../axios";
+import { actionTypes } from "../reducer";
 
 function SideBar() {
   // const [rooms, setRooms] = useState([]);
-  const [{ user, rooms }, dispatch] = useStateValue();
+
+  const [{ user, groups }, dispatch] = useStateValue();
   const [selectedRoom, setselectedRoom] = useState(null);
 
+  useEffect(() => {
+    // const unsub = onSnapshot(collection(db, "rooms"), (snapshot) => {
+    //   const roomsFromDB = snapshot.docs.map((doc) => doc.data());
+    //   dispatch({
+    //     type: actionTypes.GET_ROOMS,
+    //     rooms: roomsFromDB,
+    //   });
+    // });
+    // return unsub;
+  }, []);
   return (
     <div className="sidebar">
       <div className="header">
@@ -43,14 +55,14 @@ function SideBar() {
       </div>
       <div className="sideBarchats">
         <ChatBox addNewChat />
-        {rooms
-          ? rooms.map((room) => (
+        {groups
+          ? groups.map((group) => (
               <ChatBox
-                key={room.roomId}
-                roomId={room.roomId}
-                name={room.roomName}
-                users={room.users}
-                messages={room.messages ? room.messages : null}
+                key={group.id}
+                groupId={group.groupId}
+                name={group.name || group.groupName}
+                users={group.users}
+                messages={group?.messages ? group.messages : null}
               />
             ))
           : null}
