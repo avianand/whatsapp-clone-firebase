@@ -1,66 +1,84 @@
 import {
   AttachFile,
+  HourglassBottom,
   KeyboardVoice,
   Mood,
   MoreVert,
   Search,
   Warning,
+  WhatsApp,
 } from "@mui/icons-material";
-import { Avatar, IconButton, Typography } from "@mui/material";
+import { Avatar, IconButton } from "@mui/material";
 import React, { useEffect, useState } from "react";
-import { doc, onSnapshot } from "firebase/firestore";
-import { useParams, useLocation } from "react-router-dom";
-import axios from "../axios";
+import {
+  doc,
+  onSnapshot,
+  collection,
+  getDocs,
+  addDoc,
+} from "firebase/firestore";
+
 import db from "../firebase";
 import "./index.scss";
 import { useStateValue } from "../StateProvider";
 
+import Message from "../Message";
+
 function Chat() {
   const [input, setinput] = useState("");
   const [seed, setseed] = useState("");
-  const [{ user, rooms, currentRoom }, dispatch] = useStateValue();
+  const [groupMessages, setGroupMessages] = useState([]);
+  const [{ user, currentGroup }, dispatch] = useStateValue();
 
   const handleChange = (e) => {
     setinput(e.target.value);
   };
-  const genMessageId = () => {
-    return (
-      currentRoom?.roomId +
-      "_message_" +
-      Math.floor(1000 + Math.random() * 9000)
-    );
-  };
+
+  useEffect(() => {
+    if (currentGroup) {
+      const collectionRef = doc(db, "message", currentGroup?.id);
+      const collectionR = collection(collectionRef, "messages");
+      const unsub = onSnapshot(collectionR, (snapshot) => {
+        let groupMessagesNew = [];
+        const roomsFromDB = snapshot.docs.map((doc) => {
+          const messageDetails = doc.data();
+          messageDetails.id = doc.id;
+          groupMessagesNew = [...groupMessagesNew, messageDetails];
+          //console.log(doc.id);
+        });
+        setGroupMessages(groupMessagesNew);
+      });
+      return unsub;
+    }
+  }, [currentGroup]);
+
+  console.log({ user });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    await axios.post("/messages/new", {
-      roomId: currentRoom?.roomId,
-      messages: {
-        id: genMessageId(),
-        message: input,
-        timestamp: new Date(),
-        deleted: false,
-        sender: {
-          name: user.displayName,
-          email: user.email,
-        },
-      },
+
+    const collectionRef = doc(db, "message", currentGroup?.id);
+    const collectionR = collection(collectionRef, "messages");
+    const userDetails = {};
+    userDetails.uid = user.uid;
+    userDetails.name = user.displayName;
+    userDetails.email = user.email;
+    userDetails.image = user.photoURL;
+    const docRef = await addDoc(collectionR, {
+      messageText: input,
+      sentAt: new Date(),
+      sentBy: userDetails,
     });
+    // console.log("Document written with ID: ", docRef.id);
+
     setinput("");
-  };
-  const isSender = (message) => {
-    if (user?.email === message?.sender.email) {
-      return true;
-    } else {
-      return false;
-    }
   };
 
   useEffect(() => {
     setseed(Math.floor(Math.random() * 5000));
   }, []);
 
-  return (
+  return currentGroup ? (
     <div className="chat">
       <div className="chat_header">
         <div className="activeUser">
@@ -68,7 +86,9 @@ function Chat() {
             src={`https://avatars.dicebear.com/api/pixel-art/:${seed}.svg`}
           />
           <div className="activeUserDetails">
-            <span className="activeUserName">{currentRoom?.roomName}</span>
+            <span className="activeUserName">
+              {currentGroup.name ? currentGroup.name : currentGroup.groupName}
+            </span>
             <span className="activeUserStatus">Last seen at...</span>
           </div>
         </div>
@@ -86,24 +106,13 @@ function Chat() {
         </div>
       </div>
       <div className="chat_body">
-        {currentRoom?.messages.length ? (
-          currentRoom?.messages.map((message, index) => {
-            return (
-              <p
-                key={message?._id}
-                className={`chatMessage ${
-                  isSender(message) ? "chatReceiver" : ""
-                }`}
-              >
-                <span className="chatName">{message?.name}</span>
-                {message?.message}
-                <span className="chatTimeStamp">{message?.timestamp}</span>
-              </p>
-            );
-          })
+        {groupMessages?.length ? (
+          groupMessages?.map((message, index) => (
+            <Message key={message.id} message={message} user={user} />
+          ))
         ) : (
           <div className="noMessage">
-            <Warning /> No messages to display
+            <HourglassBottom /> Getting your messages, please wait...
           </div>
         )}
       </div>
@@ -125,6 +134,10 @@ function Chat() {
           <KeyboardVoice className="voiceIcon" />
         </IconButton>
       </div>
+    </div>
+  ) : (
+    <div className="noGroupSelected">
+      <WhatsApp fontSize="large" /> Select a group to view messages
     </div>
   );
 }

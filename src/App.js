@@ -6,6 +6,10 @@ import {
   onSnapshot,
   doc,
   getDoc,
+  setDoc,
+  query,
+  where,
+  db as DB,
 } from "firebase/firestore";
 import SideBar from "./SideBar";
 import Chat from "./Chat";
@@ -21,38 +25,20 @@ const App = () => {
   const [groups, setGroups] = useState([]);
   const [{ user }, dispatch] = useStateValue();
 
-  useEffect(async () => {
-    //get groups
-    let groups = [];
-    const querySnapshot = await getDocs(collection(db, "group"));
-    querySnapshot?.forEach(async (group) => {
-      // doc.data() is never undefined for query doc snapshots
-      let groupDetails = group.data();
-      groupDetails.id = group.id;
-      groups = [...groups, groupDetails];
-
-      const docRef = await getDocs(collection(db, "message"));
-      docRef?.forEach(async (group) => {
-        console.log(group.id);
+  useEffect(() => {
+    const unsub = onSnapshot(collection(db, "groups"), (snapshot) => {
+      let getGroups = [];
+      const roomsFromDB = snapshot.docs.map((doc) => {
+        let groupDetails = doc.data();
+        groupDetails.id = doc.id;
+        getGroups = [...getGroups, groupDetails];
+        // console.log(getGroups);
+      });
+      dispatch({
+        type: actionTypes.GET_GROUPS,
+        groups: getGroups,
       });
     });
-    dispatch({
-      type: actionTypes.GET_GROUPS,
-      groups: groups,
-    });
-
-    //get users
-    const querySnapshotUser = await getDocs(collection(db, "users"));
-    querySnapshotUser?.forEach((doc) => {
-      // console.log("User: ", doc.data());
-    });
-
-    //get messages
-
-    // const querySnapshotMessage = await getDocs(collection(db, "message"));
-    // querySnapshotMessage?.forEach((doc) => {
-    //   console.log("Message: ", doc);
-    // });
   }, []);
 
   return (
@@ -65,7 +51,9 @@ const App = () => {
             <Router>
               <SideBar />
               <Switch>
-                <Route path="/room/:roomid">{/* <Chat /> */}</Route>
+                <Route path="/group/:groupid">
+                  <Chat />
+                </Route>
                 <Route path="/">{/* <Chat /> */}</Route>
               </Switch>
             </Router>

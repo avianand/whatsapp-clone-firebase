@@ -1,16 +1,18 @@
 export const initialState = {
   user: null,
   rooms: [],
+  messages: [],
   groups: [],
-  currentRoom: null,
+  currentGroup: null,
 };
 
 export const actionTypes = {
   SET_USER: "SET_USER",
   ADD_NEW_MESSAGE: "ADD_NEW_MESSAGE",
-  SET_CURRENT_ROOM: "SET_CURRENT_ROOM",
-  ADD_NEW_ROOM: "ADD_NEW_ROOM",
+  SET_CURRENT_GROUP: "SET_CURRENT_GROUP",
+  ADD_NEW_GROUP: "ADD_NEW_GROUP",
   GET_GROUPS: "GET_GROUPS",
+  GET_MESSAGES_OF_GROUP: "GET_MESSAGES_OF_GROUP",
 };
 
 const reducer = (state, action) => {
@@ -21,11 +23,16 @@ const reducer = (state, action) => {
         ...state,
         user: action.user,
       };
+
     case actionTypes.GET_GROUPS:
       return {
         ...state,
         groups: action.groups,
       };
+
+    case actionTypes.GET_MESSAGES_OF_GROUP:
+      return state;
+
     case actionTypes.ADD_NEW_MESSAGE:
       let currRoom = state.currentRoom;
       let messagesArray = currRoom.messages;
@@ -35,21 +42,21 @@ const reducer = (state, action) => {
         ...state,
         currentRoom: currRoom,
       };
-    case actionTypes.SET_CURRENT_ROOM:
-      const currentRoomDetails = state.rooms?.find(
-        (room) => room.roomId === action.currentRoomId
-      );
+
+    case actionTypes.SET_CURRENT_GROUP:
       return {
         ...state,
-        currentRoom: currentRoomDetails,
+        currentGroup: action.groupDetails,
       };
-    case actionTypes.ADD_NEW_ROOM:
+
+    case actionTypes.ADD_NEW_GROUP:
       const rooms = state.rooms;
       const newRooms = [...rooms, action.room];
       return {
         ...state,
         rooms: newRooms,
       };
+
     default:
       return state;
   }

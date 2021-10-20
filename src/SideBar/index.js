@@ -60,6 +60,7 @@ function SideBar() {
               <ChatBox
                 key={group.id}
                 groupId={group.groupId}
+                group={group}
                 name={group.name || group.groupName}
                 users={group.users}
                 messages={group?.messages ? group.messages : null}

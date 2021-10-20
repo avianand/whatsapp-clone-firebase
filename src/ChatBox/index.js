@@ -4,13 +4,14 @@ import { doc, addDoc, collection } from "firebase/firestore";
 import db from "../firebase";
 import "./index.scss";
 import { useStateValue } from "../StateProvider";
-import { Link, useLocation } from "react-router-dom";
+import { Link, useLocation, useHistory } from "react-router-dom";
 import axios from "../axios";
 import { actionTypes } from "../reducer";
 
-function ChatBox({ addNewChat, name, roomId, users }) {
+function ChatBox({ addNewChat, name, groupId, group, users }) {
   const [seed, setseed] = useState("");
   const [{ user }, dispatch] = useStateValue();
+  const history = useHistory();
 
   useEffect(() => {
     setseed(Math.floor(Math.random() * 5000));
@@ -22,7 +23,7 @@ function ChatBox({ addNewChat, name, roomId, users }) {
     if (roomName) {
       const randomRoomId = "group__" + Math.floor(1000 + Math.random() * 9000);
 
-      const docRef = await addDoc(collection(db, "group"), {
+      const docRef = await addDoc(collection(db, "groups"), {
         groupName: roomName,
         groupId: randomRoomId,
         createdBy: user.email,
@@ -31,14 +32,15 @@ function ChatBox({ addNewChat, name, roomId, users }) {
         members: [user.email],
         type: true,
       });
-      console.log(docRef);
+      // console.log(docRef);
     }
   };
   const handleCurrentRoomChange = () => {
     dispatch({
-      type: actionTypes.SET_CURRENT_ROOM,
-      currentRoomId: roomId,
+      type: actionTypes.SET_CURRENT_GROUP,
+      groupDetails: group,
     });
+    history.push(`/group/${groupId}`);
   };
 
   return !addNewChat ? (
